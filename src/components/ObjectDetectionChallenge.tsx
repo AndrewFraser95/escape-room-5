@@ -6,8 +6,7 @@ interface Props {
 
 const FINDABLE_OBJECTS = [
   "mug", "cell phone", "book", "keyboard",
-  "remote", "scissors", "spoon", "fork", "knife", "bowl",
-  "banana", "apple", 
+ "pen", "keys", "backpack", "person"
 ];
 
 const TIME_LIMIT = 60;
@@ -21,7 +20,7 @@ const ObjectDetectionChallenge = ({ onComplete }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loading, setLoading] = useState(true);
-  const [targetObjects] = useState(() => pickRandom(FINDABLE_OBJECTS, 3));
+  const [targetObjects, setTargetObjects] = useState(() => pickRandom(FINDABLE_OBJECTS, 3));
   const [foundObjects, setFoundObjects] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [failed, setFailed] = useState(false);
@@ -122,9 +121,17 @@ const ObjectDetectionChallenge = ({ onComplete }: Props) => {
     return () => { cancelled = true; };
   }, [loadModel, onComplete, targetObjects]);
 
+  const handleReset = useCallback(() => {
+    setTargetObjects(pickRandom(FINDABLE_OBJECTS, 3));
+    setTimeLeft(TIME_LIMIT);
+    setFailed(false);
+    foundRef.current = new Set();
+    setFoundObjects(new Set());
+  }, []);
+
   // Timer
   useEffect(() => {
-    if (loading || done) return;
+    if (loading || done || failed) return;
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -136,22 +143,7 @@ const ObjectDetectionChallenge = ({ onComplete }: Props) => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [loading, done]);
-
-  // Reset on failure
-  useEffect(() => {
-    if (failed) {
-      const timeout = setTimeout(() => {
-        setFailed(false);
-        setTimeLeft(TIME_LIMIT);
-        foundRef.current = new Set();
-        setFoundObjects(new Set());
-        // Objects already randomized on mount, page would need remount for new objects
-        window.location.reload();
-      }, 3000);
-      return () => clearTimeout(timeout);
-    }
-  }, [failed]);
+  }, [loading, done, failed]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -193,8 +185,16 @@ const ObjectDetectionChallenge = ({ onComplete }: Props) => {
       )}
 
       {failed && (
-        <div className="text-destructive text-xl font-matrix-title animate-pulse">
-          TIME'S UP! RESETTING...
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-destructive text-xl font-matrix-title animate-pulse">
+            TIME'S UP!
+          </div>
+          <button
+            onClick={handleReset}
+            className="px-6 py-2 border border-destructive text-destructive font-matrix hover:bg-destructive/20 transition-colors rounded"
+          >
+            TRY AGAIN
+          </button>
         </div>
       )}
 

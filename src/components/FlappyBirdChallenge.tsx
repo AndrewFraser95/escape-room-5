@@ -8,6 +8,7 @@ interface Props {
 interface Pipe {
   x: number;
   gapY: number;
+  gap: number;
   passed: boolean;
 }
 
@@ -15,7 +16,7 @@ const BIRD_SIZE = 30;
 const PIPE_WIDTH = 50;
 const GAP_SIZE = 150;
 const PIPE_SPEED = 2.5;
-const SCORE_TO_WIN = 5;
+const SCORE_TO_WIN = 15;
 
 const FlappyBirdChallenge = ({ onComplete }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,6 +30,7 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
   const pipesRef = useRef<Pipe[]>([]);
   const frameRef = useRef(0);
   const animRef = useRef<number>(0);
+  const hitFlashRef = useRef(0);
 
   const initHandTracking = useCallback(async () => {
     try {
@@ -85,9 +87,12 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
     frameRef.current = 0;
 
     const addPipe = () => {
+      const level = Math.floor(scoreRef.current / 5);
+      const currentGap = Math.max(80, GAP_SIZE - level * 12);
       pipesRef.current.push({
         x: W,
-        gapY: Math.random() * (H - GAP_SIZE - 80) + 40,
+        gapY: Math.random() * (H - currentGap - 80) + 40,
+        gap: currentGap,
         passed: false,
       });
     };
@@ -96,7 +101,10 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
       if (gameOverRef.current) return;
       frameRef.current++;
 
-      if (frameRef.current % 120 === 0) addPipe();
+      if (frameRef.current % 80 === 0) addPipe();
+
+      const level = Math.floor(scoreRef.current / 5);
+      const currentSpeed = PIPE_SPEED + level * 0.35;
 
       const birdY = handYRef.current * H;
       const birdX = 80;
@@ -104,7 +112,7 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
       // Update pipes
       const pipes = pipesRef.current;
       for (const pipe of pipes) {
-        pipe.x -= PIPE_SPEED;
+        pipe.x -= currentSpeed;
         if (!pipe.passed && pipe.x + PIPE_WIDTH < birdX) {
           pipe.passed = true;
           scoreRef.current++;
@@ -119,13 +127,14 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
         // Collision
         if (
           birdX + BIRD_SIZE > pipe.x && birdX < pipe.x + PIPE_WIDTH &&
-          (birdY < pipe.gapY || birdY + BIRD_SIZE > pipe.gapY + GAP_SIZE)
+          (birdY < pipe.gapY || birdY + BIRD_SIZE > pipe.gapY + pipe.gap)
         ) {
           // Reset on collision
           pipesRef.current = [];
           scoreRef.current = 0;
           setScore(0);
           frameRef.current = 0;
+          hitFlashRef.current = 25;
         }
       }
       pipesRef.current = pipes.filter(p => p.x > -PIPE_WIDTH);
@@ -149,7 +158,7 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
       ctx.shadowBlur = 10;
       for (const pipe of pipesRef.current) {
         ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
-        ctx.fillRect(pipe.x, pipe.gapY + GAP_SIZE, PIPE_WIDTH, H - pipe.gapY - GAP_SIZE);
+        ctx.fillRect(pipe.x, pipe.gapY + pipe.gap, PIPE_WIDTH, H - pipe.gapY - pipe.gap);
       }
 
       // Draw bird
@@ -159,6 +168,23 @@ const FlappyBirdChallenge = ({ onComplete }: Props) => {
       ctx.arc(birdX + BIRD_SIZE / 2, birdY + BIRD_SIZE / 2, BIRD_SIZE / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
+
+      // Hit flash vignette
+      if (hitFlashRef.current > 0) {
+        const alpha = hitFlashRef.current / 25;
+        const gradient = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.85);
+        gradient.addColorStop(0, `rgba(180,0,0,0)`);
+        gradient.addColorStop(1, `rgba(220,0,0,${alpha * 0.75})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, W, H);
+        // Score reset label
+        ctx.fillStyle = `rgba(255,60,60,${alpha})`;
+        ctx.font = "bold 18px 'Orbitron', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("SCORE RESET", W / 2, H / 2);
+        ctx.textAlign = "left";
+        hitFlashRef.current--;
+      }
 
       // Score
       ctx.fillStyle = "#00ff41";
