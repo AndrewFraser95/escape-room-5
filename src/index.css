@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 120 100% 2%;
+    --foreground: 120 100% 69%;
+
+    --card: 120 40% 6%;
+    --card-foreground: 120 100% 69%;
+
+    --popover: 120 40% 6%;
+    --popover-foreground: 120 100% 69%;
+
+    --primary: 120 100% 50%;
+    --primary-foreground: 120 100% 2%;
+
+    --secondary: 120 60% 12%;
+    --secondary-foreground: 120 100% 69%;
+
+    --muted: 120 20% 15%;
+    --muted-foreground: 120 40% 45%;
+
+    --accent: 120 100% 40%;
+    --accent-foreground: 120 100% 2%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 120 40% 20%;
+    --input: 120 40% 15%;
+    --ring: 120 100% 50%;
+
+    --radius: 0.25rem;
+
+    --matrix-glow: 120 100% 50%;
+    --matrix-dim: 120 60% 25%;
+    --matrix-bg: 120 100% 2%;
+
+    --sidebar-background: 120 40% 4%;
+    --sidebar-foreground: 120 100% 69%;
+    --sidebar-primary: 120 100% 50%;
+    --sidebar-primary-foreground: 120 100% 2%;
+    --sidebar-accent: 120 40% 10%;
+    --sidebar-accent-foreground: 120 100% 69%;
+    --sidebar-border: 120 40% 15%;
+    --sidebar-ring: 120 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Share Tech Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .font-matrix {
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .font-matrix-title {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px hsl(120 100% 50% / 0.8), 0 0 20px hsl(120 100% 50% / 0.4), 0 0 40px hsl(120 100% 50% / 0.2);
+  }
+
+  .glow-border {
+    box-shadow: 0 0 5px hsl(120 100% 50% / 0.3), 0 0 15px hsl(120 100% 50% / 0.1), inset 0 0 5px hsl(120 100% 50% / 0.1);
+  }
+
+  .glow-box {
+    box-shadow: 0 0 15px hsl(120 100% 50% / 0.4), 0 0 30px hsl(120 100% 50% / 0.2);
+  }
+
+  .scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(120 100% 50% / 0.03) 2px,
+      hsl(120 100% 50% / 0.03) 4px
+    );
+  }
+}
