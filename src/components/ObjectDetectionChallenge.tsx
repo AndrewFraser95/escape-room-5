@@ -105,10 +105,13 @@ const ObjectDetectionChallenge = ({ onComplete }: Props) => {
             if (foundRef.current.size >= 3) {
               setDone(true);
               onComplete();
+              cancelled = true;
               return;
             }
           }
-          setTimeout(() => requestAnimationFrame(detect), 200);
+          if (!cancelled) {
+            setTimeout(() => requestAnimationFrame(detect), 200);
+          }
         };
         detect();
       } catch (err) {
